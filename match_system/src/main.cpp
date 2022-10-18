@@ -153,33 +153,32 @@ void consume_task()
         }
     }
 }
-
-int main(int argc, char **argv) {
-
-    TThreadedServer server(
-            std::make_shared<MatchProcessorFactory>(std::make_shared<MatchCloneFactory>()),
-            std::make_shared<TServerSocket>(9090), //port
-            std::make_shared<TBufferedTransportFactory>(),
-            std::make_shared<TBinaryProtocolFactory>());   TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
-    cout << "Start Match Server" << endl;
-    thread matching_thread(consume_task);
-    server.serve();
-    return 0;
-}
 class MatchCloneFactory : virtual public MatchIfFactory {
     public:
         ~MatchCloneFactory() override = default;
         MatchIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) override
         {
             std::shared_ptr<TSocket> sock = std::dynamic_pointer_cast<TSocket>(connInfo.transport);
-            cout << "Incoming connection\n";
+            /*cout << "Incoming connection\n";
             cout << "\tSocketInfo: "  << sock->getSocketInfo() << "\n";
             cout << "\tPeerHost: "    << sock->getPeerHost() << "\n";
             cout << "\tPeerAddress: " << sock->getPeerAddress() << "\n";
-            cout << "\tPeerPort: "    << sock->getPeerPort() << "\n";
+            cout << "\tPeerPort: "    << sock->getPeerPort() << "\n";*/
             return new MatchHandler;
         }
         void releaseHandler(MatchIf* handler) override {
             delete handler;
         }
 };
+int main(int argc, char **argv) {
+
+    TThreadedServer server(
+            std::make_shared<MatchProcessorFactory>(std::make_shared<MatchCloneFactory>()),
+            std::make_shared<TServerSocket>(9090), //port
+            std::make_shared<TBufferedTransportFactory>(),
+            std::make_shared<TBinaryProtocolFactory>());
+    cout << "Start Match Server" << endl;
+    thread matching_thread(consume_task);
+    server.serve();
+    return 0;
+}
